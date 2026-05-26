@@ -1,6 +1,7 @@
 package com.qrorder.controller;
 
 import com.qrorder.dto.order.CreateOrderRequest;
+import com.qrorder.entity.enums.OrderStatus;
 import com.qrorder.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ public class OrderController {
 
         return "Create order success";
     }
+
     @GetMapping("/session/{sessionId}")
     public List<OrderResponse>
     getOrdersBySession(
@@ -32,5 +34,31 @@ public class OrderController {
 
         return orderService
                 .getOrdersBySession(sessionId);
+    }
+
+    @GetMapping("/status/{status}")
+    public List<OrderResponse>
+    getOrdersByStatus(
+            @PathVariable OrderStatus status
+    ) {
+
+        return orderService
+                .getOrdersByStatus(status);
+    }
+
+    @PutMapping("/{orderId}/status")
+    public String updateOrderStatus(
+
+            @PathVariable Long orderId,
+
+            @RequestParam OrderStatus status
+    ) {
+
+        orderService.updateOrderStatus(
+                orderId,
+                status
+        );
+
+        return "Update order status success";
     }
 }

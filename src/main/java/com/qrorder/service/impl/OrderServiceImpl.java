@@ -90,6 +90,7 @@ public class OrderServiceImpl
 
         orderItemRepository.saveAll(orderItems);
     }
+
     @Override
     public List<OrderResponse>
     getOrdersBySession(Long sessionId) {
@@ -128,5 +129,83 @@ public class OrderServiceImpl
                         .build()
 
         ).toList();
+    }
+
+    @Override
+    public List<OrderResponse>
+    getOrdersByStatus(OrderStatus status) {
+
+        List<Order> orders =
+                orderRepository.findByStatus(status);
+
+        return orders.stream().map(order ->
+
+                OrderResponse.builder()
+                        .orderId(order.getId())
+                        .status(order.getStatus())
+                        .createdAt(order.getCreatedAt())
+
+                        .items(order.getItems()
+                                .stream()
+                                .map(item ->
+
+                                        OrderItemResponse.builder()
+                                                .foodId(
+                                                        item.getFood().getId()
+                                                )
+                                                .foodName(
+                                                        item.getFood().getName()
+                                                )
+                                                .quantity(
+                                                        item.getQuantity()
+                                                )
+                                                .note(
+                                                        item.getNote()
+                                                )
+                                                .build()
+
+                                ).toList())
+
+                        .build()
+
+        ).toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateOrderStatus(
+            Long orderId,
+            OrderStatus status
+    ) {
+
+        Order order = orderRepository
+                .findById(orderId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Order not found"
+                        ));
+
+        OrderStatus currentStatus =
+                order.getStatus();
+
+        if(currentStatus == OrderStatus.PENDING
+                && status != OrderStatus.PREPARING) {
+
+            throw new RuntimeException(
+                    "Invalid status transition"
+            );
+        }
+
+        if(currentStatus == OrderStatus.PREPARING
+                && status != OrderStatus.DONE) {
+
+            throw new RuntimeException(
+                    "Invalid status transition"
+            );
+        }
+
+        order.setStatus(status);
+
+        orderRepository.save(order);
     }
 }
