@@ -1,9 +1,12 @@
 package com.qrorder.controller;
 
 import com.qrorder.dto.food.CreateFoodRequest;
+import com.qrorder.entity.Food;
 import com.qrorder.service.FoodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/foods")
@@ -20,5 +23,11 @@ public class FoodController {
         foodService.createFood(request);
 
         return "Create food success";
+    }
+
+    @GetMapping
+    public List<Food> getFoods() {
+
+        return foodService.getFoods();
     }
 }

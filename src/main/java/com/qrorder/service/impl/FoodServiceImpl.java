@@ -9,6 +9,8 @@ import com.qrorder.service.FoodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class FoodServiceImpl
@@ -36,5 +38,11 @@ public class FoodServiceImpl
                 .build();
 
         foodRepository.save(food);
+    }
+
+    @Override
+    public List<Food> getFoods() {
+
+        return foodRepository.findAll();
     }
 }
