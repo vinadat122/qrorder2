@@ -11,4 +11,10 @@ public interface OrderRepository
     List<Order> findBySessionId(Long sessionId);
 
     List<Order> findByStatus(OrderStatus status);
+
+    List<Order>
+    findBySessionIdAndStatus(
+            Long sessionId,
+            OrderStatus status
+    );
 }
