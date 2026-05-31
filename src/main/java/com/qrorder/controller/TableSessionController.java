@@ -1,23 +1,51 @@
 package com.qrorder.controller;
 
+import com.qrorder.entity.TableSession;
 import com.qrorder.service.TableSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/sessions")
 @RequiredArgsConstructor
 public class TableSessionController {
 
-    private final TableSessionService sessionService;
+    private final TableSessionService
+            tableSessionService;
 
     @PostMapping("/open/{tableId}")
-    public String openSession(
+    public Map<String, Long> openSession(
             @PathVariable Long tableId
     ) {
 
-        sessionService.openSession(tableId);
+        TableSession session =
+                tableSessionService
+                        .openSession(tableId);
 
-        return "Open session success";
+        return Map.of(
+                "sessionId",
+                session.getId()
+        );
+    }
+
+    @GetMapping("/table/{tableId}/active")
+    public Map<String, Long>
+    getActiveSession(
+
+            @PathVariable Long tableId
+    ) {
+
+        Long sessionId =
+                tableSessionService
+                        .getActiveSessionId(
+                                tableId
+                        );
+
+        return Map.of(
+                "sessionId",
+                sessionId
+        );
     }
 }

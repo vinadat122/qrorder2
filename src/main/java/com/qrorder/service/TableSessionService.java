@@ -1,6 +1,11 @@
 package com.qrorder.service;
 
+import com.qrorder.entity.TableSession;
+
 public interface TableSessionService {
 
-    void openSession(Long tableId);
+    TableSession openSession(Long tableId);
+    Long getActiveSessionId(
+            Long tableId
+    );
 }

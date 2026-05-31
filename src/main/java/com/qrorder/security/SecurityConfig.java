@@ -37,8 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers(
-                                    "/auth/**",
-                                    "/foods/**")
+                                "/**")
                         .permitAll()
 
                         .anyRequest()

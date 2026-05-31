@@ -7,6 +7,7 @@ import com.qrorder.entity.enums.TableStatus;
 import com.qrorder.repository.RestaurantTableRepository;
 import com.qrorder.repository.TableSessionRepository;
 import com.qrorder.service.TableSessionService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class TableSessionServiceImpl
     private final RestaurantTableRepository tableRepository;
 
     @Override
-    public void openSession(Long tableId) {
+    public TableSession openSession(Long tableId) {
 
         boolean exists = sessionRepository
                 .existsByTableIdAndStatus(
@@ -49,8 +50,31 @@ public class TableSessionServiceImpl
                 .status(SessionStatus.OPEN)
                 .build();
 
-        sessionRepository.save(session);
+        return sessionRepository.save(session);
 
-        tableRepository.save(table);
+    }
+
+    @Override
+    @Transactional
+    public Long getActiveSessionId(
+            Long tableId
+    ) {
+
+        TableSession session =
+                sessionRepository
+                        .findByTableIdAndStatus(
+
+                                tableId,
+
+                                SessionStatus.OPEN
+                        )
+                        .orElseThrow(() ->
+
+                                new RuntimeException(
+                                        "No active session"
+                                )
+                        );
+
+        return session.getId();
     }
 }

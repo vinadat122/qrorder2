@@ -1,5 +1,6 @@
 package com.qrorder.entity;
 
+import java.time.LocalDateTime;
 import com.qrorder.entity.enums.TableStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,14 +15,23 @@ import lombok.*;
 public class RestaurantTable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy =
+            GenerationType.IDENTITY)
     private Long id;
 
-    private String tableNumber;
+    private Integer tableNumber;
+
+    private Integer capacity;
 
     @Column(unique = true)
     private String qrToken;
 
     @Enumerated(EnumType.STRING)
     private TableStatus status;
+
+    private LocalDateTime reservedAt;
+
+    private String reservationName;
+
+    private String reservationPhone;
 }

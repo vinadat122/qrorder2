@@ -3,5 +3,5 @@ package com.qrorder.entity.enums;
 public enum SessionStatus{
 
     OPEN,
-    PAID
+    CLOSED
 }

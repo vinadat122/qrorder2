@@ -64,15 +64,17 @@ public class PaymentServiceImpl
         TableSession session =
                 sessionRepository.findById(sessionId)
                         .orElseThrow(() ->
+
                                 new RuntimeException(
                                         "Session not found"
-                                ));
+                                )
+                        );
 
         if(session.getStatus()
-                == SessionStatus.PAID) {
+                == SessionStatus.CLOSED) {
 
             throw new RuntimeException(
-                    "Session already paid"
+                    "Session already closed"
             );
         }
 
@@ -82,17 +84,25 @@ public class PaymentServiceImpl
 
         for(Order order : orders) {
 
-            order.setStatus(OrderStatus.PAID);
+            order.setStatus(
+                    OrderStatus.PAID
+            );
         }
 
         RestaurantTable table =
                 session.getTable();
 
-        table.setStatus(TableStatus.EMPTY);
+        table.setStatus(
+                TableStatus.PAID
+        );
 
-        session.setStatus(SessionStatus.PAID);
+        session.setStatus(
+                SessionStatus.CLOSED
+        );
 
-        session.setEndTime(LocalDateTime.now());
+        session.setEndTime(
+                LocalDateTime.now()
+        );
 
         orderRepository.saveAll(orders);
 
@@ -100,4 +110,5 @@ public class PaymentServiceImpl
 
         tableRepository.save(table);
     }
+
 }
