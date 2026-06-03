@@ -15,11 +15,13 @@ public interface TableSessionRepository
             Long tableId,
             SessionStatus status
     );
+
     Optional<TableSession>
     findByIdAndStatus(
             Long id,
             SessionStatus status
     );
+
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<TableSession>
@@ -29,4 +31,5 @@ public interface TableSessionRepository
 
             SessionStatus status
     );
+
 }

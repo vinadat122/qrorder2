@@ -1,15 +1,17 @@
 package com.qrorder.scheduler;
 
+import com.qrorder.entity.Reservation;
 import com.qrorder.entity.RestaurantTable;
+
+import com.qrorder.entity.enums.ReservationStatus;
 import com.qrorder.entity.enums.TableStatus;
-import com.qrorder.repository.
-        RestaurantTableRepository;
+
+import com.qrorder.repository.ReservationRepository;
+import com.qrorder.repository.RestaurantTableRepository;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.scheduling.annotation.
-        Scheduled;
-
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -17,7 +19,11 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+
 public class ReservationScheduler {
+
+    private final ReservationRepository
+            reservationRepository;
 
     private final RestaurantTableRepository
             tableRepository;
@@ -25,44 +31,50 @@ public class ReservationScheduler {
     @Scheduled(fixedRate = 60000)
     public void autoCancelReservation() {
 
-        List<RestaurantTable> tables =
-                tableRepository.findAll();
+        List<Reservation> reservations =
 
-        for(RestaurantTable table : tables) {
+                reservationRepository
+                        .findByStatus(
+                                ReservationStatus.PENDING
+                        );
 
-            if(table.getStatus()
-                    == TableStatus.RESERVED) {
+        for(Reservation reservation
+                : reservations) {
 
-                LocalDateTime expiredTime =
-                        table.getReservedAt()
-                                .plusSeconds(30);
+            LocalDateTime expiredTime =
 
-                if(LocalDateTime.now()
-                        .isAfter(expiredTime)) {
+                    reservation
+                            .getReservationTime()
+                            .plusMinutes(30);
 
-                    table.setStatus(
-                            TableStatus.EMPTY
-                    );
+            if(LocalDateTime.now()
+                    .isAfter(expiredTime)) {
 
-                    table.setReservedAt(null);
+                reservation.setStatus(
+                        ReservationStatus.CANCELLED
+                );
 
-                    table.setReservationName(
-                            null
-                    );
+                RestaurantTable table =
+                        reservation.getTable();
 
-                    table.setReservationPhone(
-                            null
-                    );
+                table.setStatus(
+                        TableStatus.EMPTY
+                );
 
-                    tableRepository.save(table);
+                reservationRepository
+                        .save(reservation);
 
-                    System.out.println(
+                tableRepository
+                        .save(table);
 
-                            "Auto cancelled table: "
+                System.out.println(
 
-                                    + table.getTableNumber()
-                    );
-                }
+                        "Auto cancelled reservation for table: "
+
+                                +
+
+                                table.getTableNumber()
+                );
             }
         }
     }

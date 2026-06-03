@@ -1,6 +1,5 @@
 package com.qrorder.entity;
 
-import com.qrorder.entity.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,14 +21,15 @@ public class Order {
 
     private LocalDateTime createdAt;
 
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status;
-
     @ManyToOne
     @JoinColumn(name = "session_id")
     private TableSession session;
 
-    @OneToMany(mappedBy = "order",
-            cascade = CascadeType.ALL)
+    @OneToMany(
+            mappedBy = "order",
+
+            cascade = CascadeType.ALL
+    )
+
     private List<OrderItem> items;
 }

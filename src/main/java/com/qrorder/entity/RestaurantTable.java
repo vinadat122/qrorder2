@@ -1,6 +1,8 @@
 package com.qrorder.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 import com.qrorder.entity.enums.TableStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,9 +21,8 @@ public class RestaurantTable {
             GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private Integer tableNumber;
-
-    private Integer capacity;
 
     @Column(unique = true)
     private String qrToken;
@@ -29,9 +30,11 @@ public class RestaurantTable {
     @Enumerated(EnumType.STRING)
     private TableStatus status;
 
-    private LocalDateTime reservedAt;
+    @OneToMany(mappedBy = "table")
+    private List<TableSession> sessions;
 
-    private String reservationName;
+    @OneToMany(mappedBy = "table")
+    private List<Reservation> reservations;
 
-    private String reservationPhone;
+    private Integer capacity;
 }

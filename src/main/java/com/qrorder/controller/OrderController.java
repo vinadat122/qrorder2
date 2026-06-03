@@ -1,27 +1,38 @@
 package com.qrorder.controller;
 
 import com.qrorder.dto.order.CreateOrderRequest;
-import com.qrorder.entity.enums.OrderStatus;
-import com.qrorder.service.OrderService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+
 import com.qrorder.dto.order.response.OrderResponse;
+
+import com.qrorder.entity.enums.OrderItemStatus;
+
+import com.qrorder.service.OrderService;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
+
 @RequiredArgsConstructor
+
 public class OrderController {
 
     private final OrderService orderService;
 
     @PostMapping
     public String createOrder(
-            @RequestBody CreateOrderRequest request
+
+            @RequestBody
+            CreateOrderRequest request
     ) {
 
-        orderService.createOrder(request);
+        orderService.createOrder(
+                request
+        );
 
         return "Create order success";
     }
@@ -29,36 +40,36 @@ public class OrderController {
     @GetMapping("/session/{sessionId}")
     public List<OrderResponse>
     getOrdersBySession(
-            @PathVariable Long sessionId
+
+            @PathVariable
+            Long sessionId
     ) {
 
         return orderService
-                .getOrdersBySession(sessionId);
+                .getOrdersBySession(
+                        sessionId
+                );
     }
 
-    @GetMapping("/status/{status}")
-    public List<OrderResponse>
-    getOrdersByStatus(
-            @PathVariable OrderStatus status
+    @PutMapping(
+            "/items/{itemId}/status"
+    )
+
+    public String updateOrderItemStatus(
+
+            @PathVariable
+            Long itemId,
+
+            @RequestParam
+            OrderItemStatus status
     ) {
 
-        return orderService
-                .getOrdersByStatus(status);
-    }
+        orderService.updateOrderItemStatus(
 
-    @PutMapping("/{orderId}/status")
-    public String updateOrderStatus(
+                itemId,
 
-            @PathVariable Long orderId,
-
-            @RequestParam OrderStatus status
-    ) {
-
-        orderService.updateOrderStatus(
-                orderId,
                 status
         );
-
-        return "Update order status success";
+        return "Update success";
     }
 }

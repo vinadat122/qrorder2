@@ -1,5 +1,6 @@
 package com.qrorder.entity;
 
+import com.qrorder.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,5 +22,6 @@ public class User {
 
     private String password;
 
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private Role role;
 }

@@ -11,6 +11,7 @@ import com.qrorder.entity.enums.SessionStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "table_sessions")
@@ -30,6 +31,18 @@ public class TableSession {
     @JoinColumn(name = "table_id")
     private RestaurantTable table;
 
+    @Enumerated(EnumType.STRING)
+    private SessionStatus status;
+
+    private LocalDateTime startTime;
+
+    private LocalDateTime endTime;
+
+    @OneToMany( mappedBy = "session",
+            cascade = CascadeType.ALL
+    )
+    private List<Order> orders;
+
     @Column(unique = true)
     private String sessionToken;
 
@@ -37,22 +50,6 @@ public class TableSession {
 
     private String customerPhone;
 
-    @Enumerated(EnumType.STRING)
-    private SessionStatus status;
-
-    private BigDecimal subtotal;
-
-    private BigDecimal serviceCharge;
-
-    private BigDecimal taxAmount;
-
-    private BigDecimal discountAmount;
-
-    private BigDecimal finalAmount;
-
     private String note;
 
-    private LocalDateTime startTime;
-
-    private LocalDateTime endTime;
 }

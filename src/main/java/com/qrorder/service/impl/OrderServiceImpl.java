@@ -2,17 +2,31 @@ package com.qrorder.service.impl;
 
 import com.qrorder.dto.order.CreateOrderItemRequest;
 import com.qrorder.dto.order.CreateOrderRequest;
-import com.qrorder.entity.*;
-import com.qrorder.entity.enums.OrderStatus;
-import com.qrorder.entity.enums.SessionStatus;
-import com.qrorder.repository.*;
-import com.qrorder.service.OrderService;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import com.qrorder.dto.order.response.OrderItemResponse;
 import com.qrorder.dto.order.response.OrderResponse;
+
+import com.qrorder.entity.Food;
+import com.qrorder.entity.Order;
+import com.qrorder.entity.OrderItem;
+import com.qrorder.entity.TableSession;
+
+import com.qrorder.entity.enums.FoodType;
+import com.qrorder.entity.enums.OrderItemStatus;
+import com.qrorder.entity.enums.SessionStatus;
+
+import com.qrorder.repository.FoodRepository;
+import com.qrorder.repository.OrderItemRepository;
+import com.qrorder.repository.OrderRepository;
+import com.qrorder.repository.TableSessionRepository;
+
+import com.qrorder.service.OrderService;
+
+import jakarta.transaction.Transactional;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,6 +34,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+
 public class OrderServiceImpl
         implements OrderService {
 
@@ -34,137 +49,197 @@ public class OrderServiceImpl
     @Override
     @Transactional
     public void createOrder(
+
             CreateOrderRequest request
     ) {
 
-        TableSession session = sessionRepository
-                .findByIdAndStatus(
-                        request.getSessionId(),
-                        SessionStatus.OPEN
-                )
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Session not found or closed"
-                        ));
+        TableSession session =
 
-        Order order = Order.builder()
-                .createdAt(LocalDateTime.now())
-                .status(OrderStatus.PENDING)
-                .session(session)
-                .build();
+                sessionRepository
+                        .findByIdAndStatus(
 
-        orderRepository.save(order);
+                                request.getSessionId(),
+
+                                SessionStatus.OPEN
+                        )
+                        .orElseThrow(() ->
+
+                                new RuntimeException(
+                                        "Session not found or closed"
+                                )
+                        );
+
+        Order order =
+
+                Order.builder()
+
+                        .createdAt(
+                                LocalDateTime.now()
+                        )
+
+                        .session(session)
+
+                        .build();
+
+        Order savedOrder =
+
+                orderRepository.save(
+                        order
+                );
 
         List<OrderItem> orderItems =
                 new ArrayList<>();
 
-        for(CreateOrderItemRequest itemRequest
+        for (CreateOrderItemRequest itemRequest
                 : request.getItems()) {
 
-            if(itemRequest.getQuantity() <= 0) {
+            if (itemRequest.getQuantity() <= 0) {
 
                 throw new RuntimeException(
                         "Quantity must be greater than 0"
                 );
             }
 
-            Food food = foodRepository
-                    .findByIdAndAvailable(
-                            itemRequest.getFoodId(),
-                            true
-                    )
-                    .orElseThrow(() ->
-                            new RuntimeException(
-                                    "Food not available"
-                            ));
+            Food food =
 
-            OrderItem orderItem = OrderItem.builder()
-                    .food(food)
-                    .quantity(itemRequest.getQuantity())
-                    .note(itemRequest.getNote())
-                    .order(order)
-                    .build();
+                    foodRepository
+                            .findByIdAndAvailable(
 
-            orderItems.add(orderItem);
+                                    itemRequest.getFoodId(),
+
+                                    true
+                            )
+                            .orElseThrow(() ->
+
+                                    new RuntimeException(
+                                            "Food not available"
+                                    )
+                            );
+
+            OrderItemStatus initialStatus;
+
+            if (food.getType()
+                    == FoodType.INSTANT) {
+
+                initialStatus =
+                        OrderItemStatus.DONE;
+
+            } else {
+
+                initialStatus =
+                        OrderItemStatus.PENDING;
+            }
+
+            for (int i = 0;
+                 i < itemRequest.getQuantity();
+                 i++) {
+
+                OrderItem orderItem =
+
+                        OrderItem.builder()
+
+                                .food(food)
+
+                                .quantity(1)
+
+                                .note(
+                                        itemRequest.getNote()
+                                )
+
+                                .status(
+                                        initialStatus
+                                )
+
+                                .order(
+                                        savedOrder
+                                )
+
+                                .build();
+
+                orderItems.add(
+                        orderItem
+                );
+            }
         }
 
-        orderItemRepository.saveAll(orderItems);
+        orderItemRepository.saveAll(
+                orderItems
+        );
     }
 
     @Override
     public List<OrderResponse>
-    getOrdersBySession(Long sessionId) {
+    getOrdersBySession(
+            Long sessionId
+    ) {
 
         List<Order> orders =
-                orderRepository.findBySessionId(sessionId);
+
+                orderRepository
+                        .findBySessionId(
+                                sessionId
+                        );
 
         return orders.stream().map(order ->
 
                 OrderResponse.builder()
-                        .orderId(order.getId())
-                        .status(order.getStatus())
-                        .createdAt(order.getCreatedAt())
 
-                        .items(order.getItems()
-                                .stream()
-                                .map(item ->
+                        .orderId(
+                                order.getId()
+                        )
 
-                                        OrderItemResponse.builder()
-                                                .foodId(
-                                                        item.getFood().getId()
-                                                )
-                                                .foodName(
-                                                        item.getFood().getName()
-                                                )
-                                                .quantity(
-                                                        item.getQuantity()
-                                                )
-                                                .note(
-                                                        item.getNote()
-                                                )
-                                                .build()
+                        .createdAt(
+                                order.getCreatedAt()
+                        )
 
-                                ).toList())
+                        .items(
 
-                        .build()
+                                order.getItems()
 
-        ).toList();
-    }
+                                        .stream()
 
-    @Override
-    public List<OrderResponse>
-    getOrdersByStatus(OrderStatus status) {
+                                        .map(item ->
 
-        List<Order> orders =
-                orderRepository.findByStatus(status);
+                                                OrderItemResponse
+                                                        .builder()
 
-        return orders.stream().map(order ->
+                                                        .itemId(
+                                                                item.getId()
+                                                        )
 
-                OrderResponse.builder()
-                        .orderId(order.getId())
-                        .status(order.getStatus())
-                        .createdAt(order.getCreatedAt())
+                                                        .foodId(
+                                                                item.getFood().getId()
+                                                        )
 
-                        .items(order.getItems()
-                                .stream()
-                                .map(item ->
+                                                        .foodName(
+                                                                item.getFood().getName()
+                                                        )
 
-                                        OrderItemResponse.builder()
-                                                .foodId(
-                                                        item.getFood().getId()
-                                                )
-                                                .foodName(
-                                                        item.getFood().getName()
-                                                )
-                                                .quantity(
-                                                        item.getQuantity()
-                                                )
-                                                .note(
-                                                        item.getNote()
-                                                )
-                                                .build()
+                                                        .type(
+                                                                item.getFood()
+                                                                        .getType()
+                                                                        .name()
+                                                        )
 
-                                ).toList())
+                                                        .quantity(
+                                                                item.getQuantity()
+                                                        )
+
+                                                        .note(
+                                                                item.getNote()
+                                                        )
+
+                                                        .status(
+                                                                item.getStatus()
+                                                                        .name()
+                                                        )
+
+                                                        .build()
+
+                                        )
+
+                                        .toList()
+                        )
 
                         .build()
 
@@ -173,39 +248,72 @@ public class OrderServiceImpl
 
     @Override
     @Transactional
-    public void updateOrderStatus(
-            Long orderId,
-            OrderStatus status
+    public void updateOrderItemStatus(
+
+            Long itemId,
+
+            OrderItemStatus status
     ) {
 
-        Order order = orderRepository
-                .findById(orderId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Order not found"
-                        ));
+        OrderItem item =
 
-        OrderStatus currentStatus =
-                order.getStatus();
+                orderItemRepository
+                        .findById(itemId)
+                        .orElseThrow(() ->
 
-        if(currentStatus == OrderStatus.PENDING
-                && status != OrderStatus.PREPARING) {
+                                new RuntimeException(
+                                        "Item not found"
+                                )
+                        );
+
+        OrderItemStatus currentStatus =
+                item.getStatus();
+
+        if(currentStatus
+                == OrderItemStatus.PENDING
+
+                &&
+
+                status
+                        != OrderItemStatus.PREPARING) {
 
             throw new RuntimeException(
                     "Invalid status transition"
             );
         }
 
-        if(currentStatus == OrderStatus.PREPARING
-                && status != OrderStatus.DONE) {
+        if(currentStatus
+                == OrderItemStatus.PREPARING
+
+                &&
+
+                status
+                        != OrderItemStatus.DONE) {
 
             throw new RuntimeException(
                     "Invalid status transition"
             );
         }
 
-        order.setStatus(status);
+        if(currentStatus
+                == OrderItemStatus.DONE
 
-        orderRepository.save(order);
+                &&
+
+                status
+                        != OrderItemStatus.SERVED) {
+
+            throw new RuntimeException(
+                    "Invalid status transition"
+            );
+        }
+
+        item.setStatus(
+                status
+        );
+
+        orderItemRepository.save(
+                item
+        );
     }
 }

@@ -14,4 +14,10 @@ public class OrderItemResponse {
     private Integer quantity;
 
     private String note;
+
+    private String status;
+
+    private Long itemId;
+
+    private String type;
 }

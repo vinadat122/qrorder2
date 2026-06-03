@@ -1,18 +1,25 @@
 package com.qrorder.service.impl;
 
 import com.qrorder.dto.food.CreateFoodRequest;
+import com.qrorder.dto.food.FoodResponse;
+
 import com.qrorder.entity.Category;
 import com.qrorder.entity.Food;
+
 import com.qrorder.repository.CategoryRepository;
 import com.qrorder.repository.FoodRepository;
+
 import com.qrorder.service.FoodService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+
 public class FoodServiceImpl
         implements FoodService {
 
@@ -21,28 +28,113 @@ public class FoodServiceImpl
     private final CategoryRepository categoryRepository;
 
     @Override
-    public void createFood(CreateFoodRequest request) {
+    public void createFood(
 
-        Category category = categoryRepository
-                .findById(request.getCategoryId())
-                .orElseThrow(() ->
-                        new RuntimeException("Category not found"));
+            CreateFoodRequest request
+    ) {
 
-        Food food = Food.builder()
-                .name(request.getName())
-                .price(request.getPrice())
-                .description(request.getDescription())
-                .image(request.getImage())
-                .available(true)
-                .category(category)
-                .build();
+        Category category =
 
-        foodRepository.save(food);
+                categoryRepository
+                        .findById(
+                                request.getCategoryId()
+                        )
+                        .orElseThrow(() ->
+
+                                new RuntimeException(
+                                        "Category not found"
+                                )
+                        );
+
+        Food food =
+
+                Food.builder()
+
+                        .name(
+                                request.getName()
+                        )
+
+                        .type(
+                                request.getType()
+                        )
+
+                        .price(
+                                request.getPrice()
+                        )
+
+                        .description(
+                                request.getDescription()
+                        )
+
+                        .image(
+                                request.getImage()
+                        )
+
+                        .available(
+                                true
+                        )
+
+                        .category(
+                                category
+                        )
+
+                        .build();
+
+        foodRepository.save(
+                food
+        );
     }
 
     @Override
-    public List<Food> getFoods() {
+    public List<FoodResponse> getFoods() {
 
-        return foodRepository.findAll();
+        List<Food> foods =
+
+                foodRepository
+                        .findByAvailable(
+                                true
+                        );
+
+        return foods.stream().map(food ->
+
+                FoodResponse.builder()
+
+                        .id(
+                                food.getId()
+                        )
+
+                        .name(
+                                food.getName()
+                        )
+
+                        .type(
+                                food.getType()
+                                        .name()
+                        )
+
+                        .price(
+                                food.getPrice()
+                        )
+
+                        .description(
+                                food.getDescription()
+                        )
+
+                        .image(
+                                food.getImage()
+                        )
+
+                        .available(
+                                food.getAvailable()
+                        )
+
+                        .categoryName(
+                                food.getCategory()
+                                        .getName()
+                        )
+
+                        .build()
+
+        ).toList();
     }
 }

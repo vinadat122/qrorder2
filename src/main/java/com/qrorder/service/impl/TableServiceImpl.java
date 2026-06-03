@@ -1,37 +1,83 @@
 package com.qrorder.service.impl;
 
 import com.qrorder.dto.table.request.CreateTableRequest;
-import com.qrorder.dto.table.request.
-        ReserveTableRequest;
+import com.qrorder.dto.table.request.ReserveTableRequest;
+import com.qrorder.dto.table.response.TableResponse;
+
+import com.qrorder.entity.Reservation;
 import com.qrorder.entity.RestaurantTable;
+import com.qrorder.entity.TableSession;
+
+import com.qrorder.entity.enums.ReservationStatus;
+import com.qrorder.entity.enums.SessionStatus;
 import com.qrorder.entity.enums.TableStatus;
+
+import com.qrorder.repository.ReservationRepository;
 import com.qrorder.repository.RestaurantTableRepository;
 import com.qrorder.repository.TableSessionRepository;
+
 import com.qrorder.service.TableService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import com.qrorder.entity.TableSession;
-import com.qrorder.entity.enums.SessionStatus;
+
 import jakarta.transaction.Transactional;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class TableServiceImpl implements TableService {
+
+public class TableServiceImpl
+        implements TableService {
 
     private final RestaurantTableRepository tableRepository;
-    private final TableSessionRepository
-            sessionRepository;
+
+    private final TableSessionRepository tableSessionRepository;
+
+    private final ReservationRepository reservationRepository;
+
+    private TableResponse mapToResponse(RestaurantTable table) {
+
+        return new TableResponse(
+                table.getId(),
+                table.getTableNumber(),
+                table.getQrToken(),
+                table.getStatus()
+        );
+    }
 
     @Override
+    @Transactional
     public void createTable(
             CreateTableRequest request
     ) {
 
+        if (request.getCapacity() <= 0) {
+
+            throw new RuntimeException(
+                    "Capacity must be greater than 0"
+            );
+        }
+
+        boolean exists = tableRepository
+                .existsByTableNumber(
+                        request.getTableNumber()
+                );
+
+        if (exists) {
+
+            throw new RuntimeException(
+                    "Table number already exists"
+            );
+        }
+
         RestaurantTable table =
+
                 RestaurantTable.builder()
 
                         .tableNumber(
@@ -53,16 +99,23 @@ public class TableServiceImpl implements TableService {
 
                         .build();
 
-        tableRepository.save(table);
+        tableRepository.save(
+                table
+        );
+    }
+
+
+    @Override
+    public List<TableResponse> getTables() {
+
+        return tableRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     @Override
-    public List<RestaurantTable> getTables() {
-
-        return tableRepository.findAll();
-    }
-
-    @Override
+    @Transactional
     public void reserveTable(
 
             Long tableId,
@@ -71,11 +124,15 @@ public class TableServiceImpl implements TableService {
     ) {
 
         RestaurantTable table =
-                tableRepository.findById(tableId)
+
+                tableRepository
+                        .findById(tableId)
                         .orElseThrow(() ->
+
                                 new RuntimeException(
                                         "Table not found"
-                                ));
+                                )
+                        );
 
         if(table.getStatus()
                 != TableStatus.EMPTY) {
@@ -89,46 +146,78 @@ public class TableServiceImpl implements TableService {
                 TableStatus.RESERVED
         );
 
-        table.setReservedAt(
-                LocalDateTime.now()
+        tableRepository.save(
+                table
         );
 
-        table.setReservationName(
-                request.getName()
-        );
+        Reservation reservation =
 
-        table.setReservationPhone(
-                request.getPhone()
-        );
+                Reservation.builder()
 
-        tableRepository.save(table);
+                        .customerName(
+                                request.getCustomerName()
+                        )
+
+                        .phone(
+                                request.getPhone()
+                        )
+
+                        .guestCount(
+                                request.getGuestCount()
+                        )
+
+                        .reservationTime(
+                                request.getReservationTime()
+                        )
+
+                        .note(
+                                request.getNote()
+                        )
+
+                        .status(
+                                ReservationStatus.PENDING
+                        )
+
+                        .createdAt(
+                                LocalDateTime.now()
+                        )
+
+                        .table(table)
+
+                        .build();
+
+        reservationRepository.save(
+                reservation
+        );
     }
 
     @Override
     @Transactional
-    public Long checkIn(Long tableId) {
+    public Long checkIn(
+            Long tableId
+    ) {
 
         RestaurantTable table =
-                tableRepository.findById(tableId)
-                        .orElseThrow(() ->
 
-                                new RuntimeException(
+                tableRepository
+                        .findById(tableId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
                                         "Table not found"
                                 )
                         );
 
-        if(table.getStatus()
-                != TableStatus.RESERVED) {
+        if (table.getStatus()
+                == TableStatus.OCCUPIED) {
 
             throw new RuntimeException(
-                    "Table is not reserved"
+                    "Table already occupied"
             );
         }
 
-        Optional<TableSession>
-                existingSession =
+        Optional<TableSession> existingSession =
 
-                sessionRepository
+                tableSessionRepository
                         .findByTableIdAndStatus(
 
                                 tableId,
@@ -136,73 +225,168 @@ public class TableServiceImpl implements TableService {
                                 SessionStatus.OPEN
                         );
 
-        if(existingSession.isPresent()) {
+        if (existingSession.isPresent()) {
 
             return existingSession
                     .get()
                     .getId();
         }
 
+        List<Reservation> reservations =
+
+                reservationRepository
+                        .findByTableId(
+                                tableId
+                        );
+
+        Reservation activeReservation =
+
+                reservations
+                        .stream()
+                        .filter(reservation ->
+
+                                reservation.getStatus()
+                                        == ReservationStatus.PENDING
+
+                                        ||
+
+                                        reservation.getStatus()
+                                                == ReservationStatus.CONFIRMED
+                        )
+                        .findFirst()
+                        .orElse(null);
+
+        reservations.forEach(reservation -> {
+
+            if (reservation.getStatus()
+                    == ReservationStatus.PENDING
+
+                    ||
+
+                    reservation.getStatus()
+                            == ReservationStatus.CONFIRMED) {
+
+                reservation.setStatus(
+                        ReservationStatus.ARRIVED
+                );
+            }
+        });
+
+        reservationRepository.saveAll(
+                reservations
+        );
+
         table.setStatus(
                 TableStatus.OCCUPIED
         );
 
-        tableRepository.save(table);
+        tableRepository.save(
+                table
+        );
 
         TableSession session =
-                new TableSession();
 
-        session.setTable(table);
+                TableSession.builder()
 
-        session.setSessionToken(
-                UUID.randomUUID()
-                        .toString()
-        );
+                        .table(table)
 
-        session.setStatus(
-                SessionStatus.OPEN
-        );
+                        .sessionToken(
+                                UUID.randomUUID()
+                                        .toString()
+                        )
 
-        session.setStartTime(
-                LocalDateTime.now()
-        );
+                        .status(
+                                SessionStatus.OPEN
+                        )
+
+                        .startTime(
+                                LocalDateTime.now()
+                        )
+
+                        .customerName(
+
+                                activeReservation != null
+                                        ? activeReservation.getCustomerName()
+                                        : null
+                        )
+
+                        .customerPhone(
+
+                                activeReservation != null
+                                        ? activeReservation.getPhone()
+                                        : null
+                        )
+
+                        .note(
+
+                                activeReservation != null
+                                        ? activeReservation.getNote()
+                                        : null
+                        )
+                        .build();
+
 
         TableSession savedSession =
-                sessionRepository.save(session);
+
+                tableSessionRepository
+                        .save(session);
 
         return savedSession.getId();
     }
 
     @Override
+    @Transactional
     public void resetTable(Long tableId) {
 
         RestaurantTable table =
-                tableRepository.findById(tableId)
-                        .orElseThrow(() ->
 
-                                new RuntimeException(
+                tableRepository
+                        .findById(tableId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
                                         "Table not found"
                                 )
                         );
 
-        if(table.getStatus()
-                != TableStatus.PAID) {
+        if (table.getStatus()
+                == TableStatus.EMPTY) {
 
             throw new RuntimeException(
-                    "Table is not paid yet"
+                    "Table already empty"
             );
         }
+
+        TableSession session =
+
+                tableSessionRepository
+                        .findByTableIdAndStatus(
+                                tableId,
+                                SessionStatus.OPEN
+                        )
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "No active session found"
+                                )
+                        );
+
+        session.setStatus(
+                SessionStatus.CLOSED
+        );
+
+        session.setEndTime(
+                LocalDateTime.now()
+        );
+
+        tableSessionRepository.save(
+                session
+        );
 
         table.setStatus(
                 TableStatus.EMPTY
         );
 
-        table.setReservedAt(null);
-
-        table.setReservationName(null);
-
-        table.setReservationPhone(null);
-
-        tableRepository.save(table);
+        tableRepository.save(
+                table
+        );
     }
 }

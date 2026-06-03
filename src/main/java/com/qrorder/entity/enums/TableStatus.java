@@ -6,7 +6,5 @@ public enum TableStatus {
 
     RESERVED,
 
-    OCCUPIED,
-
-    PAID
+    OCCUPIED
 }

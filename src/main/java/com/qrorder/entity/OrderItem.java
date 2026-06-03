@@ -1,5 +1,6 @@
 package com.qrorder.entity;
 
+import com.qrorder.entity.enums.OrderItemStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,15 +17,18 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer quantity;
-
-    private String note;
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
 
     @ManyToOne
     @JoinColumn(name = "food_id")
     private Food food;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
+    private Integer quantity;
+
+    private String note;
+
+    @Enumerated(EnumType.STRING)
+    private OrderItemStatus status;
 }

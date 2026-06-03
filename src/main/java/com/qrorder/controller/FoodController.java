@@ -1,33 +1,47 @@
 package com.qrorder.controller;
 
 import com.qrorder.dto.food.CreateFoodRequest;
-import com.qrorder.entity.Food;
+import com.qrorder.dto.food.FoodResponse;
+
 import com.qrorder.service.FoodService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/foods")
+
 @RequiredArgsConstructor
+
 public class FoodController {
 
     private final FoodService foodService;
 
     @PostMapping
-    public String createFood(
-            @RequestBody CreateFoodRequest request
+    public Map<String, String> createFood(
+
+            @RequestBody
+            CreateFoodRequest request
     ) {
 
-        foodService.createFood(request);
+        foodService.createFood(
+                request
+        );
 
-        return "Create food success";
+        return Map.of(
+                "message",
+                "Create food success"
+        );
     }
 
     @GetMapping
-    public List<Food> getFoods() {
+    public List<FoodResponse> getFoods() {
 
-        return foodService.getFoods();
+        return foodService
+                .getFoods();
     }
 }

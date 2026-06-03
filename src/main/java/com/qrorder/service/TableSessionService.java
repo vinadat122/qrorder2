@@ -5,7 +5,7 @@ import com.qrorder.entity.TableSession;
 public interface TableSessionService {
 
     TableSession openSession(Long tableId);
-    Long getActiveSessionId(
+    TableSession getActiveSession(
             Long tableId
     );
 }

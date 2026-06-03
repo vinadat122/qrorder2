@@ -1,5 +1,6 @@
 package com.qrorder.entity;
 
+import com.qrorder.entity.enums.FoodType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,9 @@ public class Food {
     private Long id;
 
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    private FoodType type;
 
     private Double price;
 

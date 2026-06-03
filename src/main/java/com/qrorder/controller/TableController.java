@@ -2,6 +2,8 @@ package com.qrorder.controller;
 
 import com.qrorder.dto.table.request.CreateTableRequest;
 import com.qrorder.dto.table.request.ReserveTableRequest;
+import com.qrorder.dto.table.response.TableResponse;
+
 import com.qrorder.entity.RestaurantTable;
 import com.qrorder.service.TableService;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +47,7 @@ public class TableController {
     }
 
     @GetMapping
-    public List<RestaurantTable> getTables() {
+    public List<TableResponse> getTables() {
 
         return tableService.getTables();
     }
@@ -65,7 +67,7 @@ public class TableController {
         );
     }
 
-    @PostMapping("/{tableId}/reset")
+    @PutMapping ("/{tableId}/reset")
     public String resetTable(
 
             @PathVariable Long tableId

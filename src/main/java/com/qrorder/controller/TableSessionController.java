@@ -37,15 +37,16 @@ public class TableSessionController {
             @PathVariable Long tableId
     ) {
 
-        Long sessionId =
+        TableSession session =
+
                 tableSessionService
-                        .getActiveSessionId(
+                        .getActiveSession(
                                 tableId
                         );
 
         return Map.of(
                 "sessionId",
-                sessionId
+                session.getId()
         );
     }
 }

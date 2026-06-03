@@ -7,5 +7,5 @@ import com.qrorder.dto.auth.RegisterRequest;
 public interface AuthService {
 
     LoginResponse login(LoginRequest request);
-    void register(RegisterRequest request);
+    LoginResponse register(RegisterRequest request);
 }
