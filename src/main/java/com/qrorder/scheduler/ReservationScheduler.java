@@ -38,17 +38,21 @@ public class ReservationScheduler {
                                 ReservationStatus.PENDING
                         );
 
-        for(Reservation reservation
+        for (Reservation reservation
                 : reservations) {
 
             LocalDateTime expiredTime =
 
                     reservation
                             .getReservationTime()
-                            .plusMinutes(30);
+                            .plusSeconds(10);
 
-            if(LocalDateTime.now()
-                    .isAfter(expiredTime)) {
+            if (
+
+                    LocalDateTime.now()
+                            .isAfter(expiredTime)
+
+            ) {
 
                 reservation.setStatus(
                         ReservationStatus.CANCELLED
@@ -57,15 +61,21 @@ public class ReservationScheduler {
                 RestaurantTable table =
                         reservation.getTable();
 
-                table.setStatus(
-                        TableStatus.EMPTY
+                if (table.getStatus()
+                        == TableStatus.RESERVED) {
+
+                    table.setStatus(
+                            TableStatus.EMPTY
+                    );
+
+                    tableRepository.save(
+                            table
+                    );
+                }
+
+                reservationRepository.save(
+                        reservation
                 );
-
-                reservationRepository
-                        .save(reservation);
-
-                tableRepository
-                        .save(table);
 
                 System.out.println(
 

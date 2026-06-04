@@ -1,22 +1,15 @@
 package com.qrorder.service.impl;
 
-import com.qrorder.dto.payment.BillResponse;
-
-import com.qrorder.entity.Order;
-import com.qrorder.entity.OrderItem;
-import com.qrorder.entity.Reservation;
-import com.qrorder.entity.RestaurantTable;
-import com.qrorder.entity.TableSession;
+import com.qrorder.dto.payment.PaymentItemResponse;
+import com.qrorder.dto.payment.PaymentResponse;
+import com.qrorder.entity.*;
 
 import com.qrorder.entity.enums.OrderItemStatus;
 import com.qrorder.entity.enums.ReservationStatus;
 import com.qrorder.entity.enums.SessionStatus;
 import com.qrorder.entity.enums.TableStatus;
 
-import com.qrorder.repository.OrderRepository;
-import com.qrorder.repository.ReservationRepository;
-import com.qrorder.repository.RestaurantTableRepository;
-import com.qrorder.repository.TableSessionRepository;
+import com.qrorder.repository.*;
 
 import com.qrorder.service.PaymentService;
 
@@ -27,7 +20,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -43,11 +39,23 @@ public class PaymentServiceImpl
 
     private final ReservationRepository reservationRepository;
 
-    @Override
-    public BillResponse calculateBill(
+    private final PaymentRepository paymentRepository;
 
+    @Override
+    @Transactional
+    public PaymentResponse getBill(
             Long sessionId
     ) {
+
+        TableSession session =
+
+                sessionRepository
+                        .findById(sessionId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "Session not found"
+                                )
+                        );
 
         List<Order> orders =
 
@@ -56,31 +64,119 @@ public class PaymentServiceImpl
                                 sessionId
                         );
 
-        double total = 0;
+        double totalAmount =
 
-        for(Order order : orders) {
+                calculateTotalAmount(
+                        orders
+                );
 
-            for(OrderItem item
+        Map<Long, PaymentItemResponse> groupedItems =
+                new LinkedHashMap<>();
+
+        for (Order order : orders) {
+
+            for (OrderItem orderItem
                     : order.getItems()) {
 
-                total +=
+                if (orderItem.getStatus()
+                        != OrderItemStatus.SERVED
 
-                        item.getFood().getPrice()
+                        &&
 
-                                *
+                        orderItem.getStatus()
+                                != OrderItemStatus.CANCELLED
 
-                                item.getQuantity();
+                        &&
+
+                        orderItem.getStatus()
+                                != OrderItemStatus.WASTED) {
+
+                    throw new RuntimeException(
+                            "Cannot generate bill while kitchen is processing orders"
+                    );
+                }
+
+                if(orderItem.getStatus()
+                        == OrderItemStatus.CANCELLED
+
+                        ||
+
+                        orderItem.getStatus()
+                                == OrderItemStatus.WASTED) {
+
+                    continue;
+                }
+
+                Long foodId =
+                        orderItem.getFood().getId();
+
+                double unitPrice =
+                        orderItem.getFood().getPrice();
+
+                PaymentItemResponse existing =
+                        groupedItems.get(foodId);
+
+                if (existing == null) {
+
+                    groupedItems.put(
+
+                            foodId,
+
+                            PaymentItemResponse.builder()
+
+                                    .foodName(
+                                            orderItem.getFood().getName()
+                                    )
+
+                                    .quantity(1)
+
+                                    .unitPrice(
+                                            unitPrice
+                                    )
+
+                                    .subtotal(
+                                            unitPrice
+                                                    *
+                                                    orderItem.getQuantity()
+                                    )
+
+                                    .build()
+                    );
+
+                } else {
+
+                    existing.setQuantity(
+                            existing.getQuantity() + 1
+                    );
+
+                    existing.setSubtotal(
+                            existing.getSubtotal()
+
+                                    +
+
+                                    (
+                                            unitPrice
+                                                    * orderItem.getQuantity()
+                                    )
+                    );
+                }
             }
         }
 
-        return BillResponse.builder()
+        return PaymentResponse.builder()
 
                 .sessionId(
                         sessionId
                 )
 
+                .items(
+                        new ArrayList<>(
+                                groupedItems.values()
+                        )
+                )
+
                 .totalAmount(
-                        total
+                        totalAmount
                 )
 
                 .build();
@@ -105,9 +201,18 @@ public class PaymentServiceImpl
                         .orElseThrow(() ->
 
                                 new RuntimeException(
-                                        "Session not found or closed"
+                                        "Session not found or already closed"
                                 )
                         );
+
+        if (paymentRepository.existsBySessionId(
+                sessionId
+        )) {
+
+            throw new RuntimeException(
+                    "Session already paid"
+            );
+        }
 
         List<Order> orders =
 
@@ -116,26 +221,97 @@ public class PaymentServiceImpl
                                 sessionId
                         );
 
-        for(Order order : orders) {
+        if (orders.isEmpty()) {
 
-            for(OrderItem item
+            throw new RuntimeException(
+                    "No orders found"
+            );
+        }
+
+        for (Order order : orders) {
+
+            for (OrderItem item
                     : order.getItems()) {
 
-                if(item.getStatus()
-                        != OrderItemStatus.SERVED) {
+                if (item.getStatus()
+                        != OrderItemStatus.SERVED
+
+                        &&
+
+                        item.getStatus()
+                                != OrderItemStatus.CANCELLED
+
+                        &&
+
+                        item.getStatus()
+                                != OrderItemStatus.WASTED) {
 
                     throw new RuntimeException(
-                            "All items must be served before payment"
+                            "All items must be completed before payment"
                     );
                 }
             }
         }
 
-        RestaurantTable table =
-                session.getTable();
+        double subtotal =
 
-        table.setStatus(
-                TableStatus.EMPTY
+                calculateTotalAmount(
+                        orders
+                );
+
+        double serviceCharge = 0;
+
+        double taxAmount = 0;
+
+        double discountAmount = 0;
+
+        double finalAmount =
+
+                subtotal
+                        + serviceCharge
+                        + taxAmount
+                        - discountAmount;
+
+        Payment payment =
+
+                Payment.builder()
+
+                        .session(
+                                session
+                        )
+
+                        .amount(
+                                finalAmount
+                        )
+
+                        .paidAt(
+                                LocalDateTime.now()
+                        )
+
+                        .build();
+
+        paymentRepository.save(
+                payment
+        );
+
+        session.setSubtotal(
+                subtotal
+        );
+
+        session.setServiceCharge(
+                serviceCharge
+        );
+
+        session.setTaxAmount(
+                taxAmount
+        );
+
+        session.setDiscountAmount(
+                discountAmount
+        );
+
+        session.setFinalAmount(
+                finalAmount
         );
 
         session.setStatus(
@@ -144,6 +320,13 @@ public class PaymentServiceImpl
 
         session.setEndTime(
                 LocalDateTime.now()
+        );
+
+        RestaurantTable table =
+                session.getTable();
+
+        table.setStatus(
+                TableStatus.EMPTY
         );
 
         List<Reservation> reservations =
@@ -155,7 +338,7 @@ public class PaymentServiceImpl
 
         reservations.forEach(reservation -> {
 
-            if(reservation.getStatus()
+            if (reservation.getStatus()
                     == ReservationStatus.ARRIVED) {
 
                 reservation.setStatus(
@@ -176,4 +359,42 @@ public class PaymentServiceImpl
                 table
         );
     }
+
+    private double calculateTotalAmount(
+
+            List<Order> orders
+    ) {
+
+        double totalAmount = 0;
+
+        for (Order order : orders) {
+
+            for (OrderItem item
+                    : order.getItems()) {
+
+                if (item.getStatus()
+                        == OrderItemStatus.CANCELLED
+
+                        ||
+
+                        item.getStatus()
+                                == OrderItemStatus.WASTED) {
+
+                    continue;
+                }
+
+                totalAmount +=
+
+                        item.getFood()
+                                .getPrice()
+
+                                *
+
+                                item.getQuantity();
+            }
+        }
+
+        return totalAmount;
+    }
+
 }

@@ -1,7 +1,7 @@
 package com.qrorder.controller;
 
-import com.qrorder.dto.payment.BillResponse;
 
+import com.qrorder.dto.payment.PaymentResponse;
 import com.qrorder.service.PaymentService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,17 +19,16 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    @GetMapping("/{sessionId}")
-    public BillResponse calculateBill(
 
-            @PathVariable
-            Long sessionId
+    @GetMapping("/{sessionId}")
+    public PaymentResponse getBill(
+
+            @PathVariable Long sessionId
     ) {
 
-        return paymentService
-                .calculateBill(
-                        sessionId
-                );
+        return paymentService.getBill(
+                sessionId
+        );
     }
 
     @PostMapping("/{sessionId}")

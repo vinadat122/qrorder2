@@ -1,7 +1,7 @@
 package com.qrorder.service.impl;
 
-import com.qrorder.dto.order.CreateOrderItemRequest;
-import com.qrorder.dto.order.CreateOrderRequest;
+import com.qrorder.dto.order.request.CreateOrderItemRequest;
+import com.qrorder.dto.order.request.CreateOrderRequest;
 
 import com.qrorder.dto.order.response.OrderItemResponse;
 import com.qrorder.dto.order.response.OrderResponse;
@@ -252,56 +252,73 @@ public class OrderServiceImpl
 
             Long itemId,
 
-            OrderItemStatus status
+            OrderItemStatus newStatus
     ) {
 
         OrderItem item =
 
                 orderItemRepository
                         .findById(itemId)
-                        .orElseThrow(() ->
-
-                                new RuntimeException(
-                                        "Item not found"
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "Order item not found"
                                 )
                         );
 
         OrderItemStatus currentStatus =
                 item.getStatus();
 
-        if(currentStatus
-                == OrderItemStatus.PENDING
+        boolean validTransition = false;
 
-                &&
+        switch (currentStatus) {
 
-                status
-                        != OrderItemStatus.PREPARING) {
+            case PENDING:
 
-            throw new RuntimeException(
-                    "Invalid status transition"
-            );
+                validTransition =
+
+                        newStatus
+                                == OrderItemStatus.PREPARING
+
+                                ||
+
+                                newStatus
+                                        == OrderItemStatus.CANCELLED;
+
+                break;
+
+            case PREPARING:
+
+                validTransition =
+
+                        newStatus
+                                == OrderItemStatus.DONE;
+
+                break;
+
+            case DONE:
+
+                validTransition =
+
+                        newStatus
+                                == OrderItemStatus.SERVED
+
+                                ||
+
+                                newStatus
+                                        == OrderItemStatus.WASTED;
+
+                break;
+
+            case SERVED:
+            case CANCELLED:
+            case WASTED:
+
+                validTransition = false;
+
+                break;
         }
 
-        if(currentStatus
-                == OrderItemStatus.PREPARING
-
-                &&
-
-                status
-                        != OrderItemStatus.DONE) {
-
-            throw new RuntimeException(
-                    "Invalid status transition"
-            );
-        }
-
-        if(currentStatus
-                == OrderItemStatus.DONE
-
-                &&
-
-                status
-                        != OrderItemStatus.SERVED) {
+        if (!validTransition) {
 
             throw new RuntimeException(
                     "Invalid status transition"
@@ -309,7 +326,7 @@ public class OrderServiceImpl
         }
 
         item.setStatus(
-                status
+                newStatus
         );
 
         orderItemRepository.save(

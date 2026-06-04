@@ -1,10 +1,13 @@
 package com.qrorder.service;
 
-import com.qrorder.dto.payment.BillResponse;
+
+import com.qrorder.dto.payment.PaymentResponse;
 
 public interface PaymentService {
 
-    BillResponse calculateBill(Long sessionId);
+    PaymentResponse getBill(
+            Long sessionId
+    );
 
     void payment(Long sessionId);
 }

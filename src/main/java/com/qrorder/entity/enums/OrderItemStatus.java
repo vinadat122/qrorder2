@@ -1,6 +1,5 @@
 package com.qrorder.entity.enums;
 
-
 public enum OrderItemStatus {
 
     PENDING,
@@ -9,7 +8,10 @@ public enum OrderItemStatus {
 
     DONE,
 
-    SERVED
-}
+    SERVED,
 
+    CANCELLED,
+
+    WASTED
+}
 

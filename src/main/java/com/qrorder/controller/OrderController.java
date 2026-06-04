@@ -1,6 +1,6 @@
 package com.qrorder.controller;
 
-import com.qrorder.dto.order.CreateOrderRequest;
+import com.qrorder.dto.order.request.CreateOrderRequest;
 
 import com.qrorder.dto.order.response.OrderResponse;
 

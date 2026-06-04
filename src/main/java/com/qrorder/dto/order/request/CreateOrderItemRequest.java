@@ -1,4 +1,4 @@
-package com.qrorder.dto.order;
+package com.qrorder.dto.order.request;
 
 import lombok.Data;
 

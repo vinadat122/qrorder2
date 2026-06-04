@@ -1,6 +1,6 @@
 package com.qrorder.service;
 
-import com.qrorder.dto.order.CreateOrderRequest;
+import com.qrorder.dto.order.request.CreateOrderRequest;
 import com.qrorder.dto.order.response.OrderResponse;
 
 import com.qrorder.entity.enums.OrderItemStatus;

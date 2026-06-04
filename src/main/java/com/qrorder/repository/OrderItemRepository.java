@@ -22,4 +22,8 @@ public interface OrderItemRepository
 
             List<OrderItemStatus> statuses
     );
+
+    long countByStatus(
+            OrderItemStatus status
+    );
 }

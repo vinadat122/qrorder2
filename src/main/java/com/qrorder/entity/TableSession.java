@@ -34,8 +34,10 @@ public class TableSession {
     @Enumerated(EnumType.STRING)
     private SessionStatus status;
 
+    @Column(unique = true)
     private LocalDateTime startTime;
 
+    @Column(unique = true)
     private LocalDateTime endTime;
 
     @OneToMany( mappedBy = "session",
@@ -51,5 +53,20 @@ public class TableSession {
     private String customerPhone;
 
     private String note;
+
+    @Column
+    private Double subtotal;
+
+    @Column
+    private Double serviceCharge;
+
+    @Column
+    private Double taxAmount;
+
+    @Column
+    private Double discountAmount;
+
+    @Column
+    private Double finalAmount;
 
 }
