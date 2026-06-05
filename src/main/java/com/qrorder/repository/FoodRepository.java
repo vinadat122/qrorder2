@@ -24,4 +24,8 @@ public interface FoodRepository
     boolean existsByNameIgnoreCase(
             String name
     );
+
+    boolean existsByCategoryId(
+            Long categoryId
+    );
 }

@@ -107,6 +107,7 @@ public class GlobalExceptionHandler {
             Exception e
     ) {
 
+        e.printStackTrace();
         Map<String, Object> error =
                 new HashMap<>();
 

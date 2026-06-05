@@ -1,6 +1,7 @@
 package com.qrorder.service.impl;
 
-import com.qrorder.dto.food.CreateFoodRequest;
+import com.qrorder.dto.food.UpdateFoodRequest;
+import com.qrorder.dto.food.request.CreateFoodRequest;
 import com.qrorder.dto.food.FoodResponse;
 
 import com.qrorder.entity.Category;
@@ -123,7 +124,6 @@ public class FoodServiceImpl
 
                         .type(
                                 food.getType()
-                                        .name()
                         )
 
                         .price(
@@ -150,5 +150,79 @@ public class FoodServiceImpl
                         .build()
 
         ).toList();
+    }
+
+    @Override
+    public void updateFood(
+            Long id,
+            UpdateFoodRequest request
+    ) {
+
+        Food food = foodRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Food not found"));
+
+        Category category = categoryRepository.findById(
+                request.getCategoryId()
+        ).orElseThrow(() ->
+                new RuntimeException("Category not found"));
+
+        food.setName(
+                request.getName()
+        );
+
+        food.setPrice(
+                request.getPrice()
+        );
+
+        food.setDescription(
+                request.getDescription()
+        );
+
+        food.setImage(
+                request.getImage()
+        );
+
+        food.setType(
+                request.getType()
+        );
+
+        food.setCategory(
+                category
+        );
+
+        foodRepository.save(food);
+    }
+
+    @Override
+    public FoodResponse getFoodById(Long id) {
+
+        Food food = foodRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Food not found"));
+
+        return FoodResponse.builder()
+                .id(food.getId())
+                .name(food.getName())
+                .type(food.getType())
+                .price(food.getPrice())
+                .description(food.getDescription())
+                .image(food.getImage())
+                .available(food.getAvailable())
+                .categoryId(food.getCategory().getId())
+                .categoryName(food.getCategory().getName())
+                .build();
+    }
+
+    @Override
+    public void deleteFood(Long id) {
+
+        Food food = foodRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Food not found"));
+
+        food.setAvailable(false);
+
+        foodRepository.save(food);
     }
 }

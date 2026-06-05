@@ -1,5 +1,6 @@
 package com.qrorder.dto.food;
 
+import com.qrorder.entity.enums.FoodType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,7 +13,7 @@ public class FoodResponse {
 
     private String name;
 
-    private String type;
+    private FoodType type;
 
     private Double price;
 
@@ -23,4 +24,6 @@ public class FoodResponse {
     private Boolean available;
 
     private String categoryName;
+
+    private Long categoryId;
 }
