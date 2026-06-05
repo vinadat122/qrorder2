@@ -1,6 +1,7 @@
 package com.qrorder.controller;
 
 
+import com.qrorder.dto.payment.PaymentHistoryResponse;
 import com.qrorder.dto.payment.PaymentResponse;
 import com.qrorder.service.PaymentService;
 
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -46,5 +48,27 @@ public class PaymentController {
                 "message",
                 "Payment success"
         );
+    }
+
+    @GetMapping("/history")
+    public List<PaymentHistoryResponse>
+    getPaymentHistory() {
+
+        return paymentService
+                .getPaymentHistory();
+    }
+
+    @GetMapping("/history/{paymentId}")
+    public PaymentHistoryResponse
+    getPaymentDetail(
+
+            @PathVariable
+            Long paymentId
+    ) {
+
+        return paymentService
+                .getPaymentDetail(
+                        paymentId
+                );
     }
 }

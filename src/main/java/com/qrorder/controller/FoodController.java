@@ -5,6 +5,7 @@ import com.qrorder.dto.food.FoodResponse;
 
 import com.qrorder.service.FoodService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ public class FoodController {
     @PostMapping
     public Map<String, String> createFood(
 
+            @Valid
             @RequestBody
             CreateFoodRequest request
     ) {

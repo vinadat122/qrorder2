@@ -5,6 +5,7 @@ import com.qrorder.dto.category.CreateCategoryRequest;
 import com.qrorder.repository.CategoryRepository;
 import com.qrorder.service.CategoryService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ public class CategoryController {
     @PostMapping
     public Map<String, String> createCategory(
 
+            @Valid
             @RequestBody
             CreateCategoryRequest request
     ) {

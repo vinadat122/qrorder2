@@ -33,6 +33,20 @@ public class FoodServiceImpl
             CreateFoodRequest request
     ) {
 
+        String foodName =
+
+                request.getName()
+                        .trim();
+
+        if (foodRepository.existsByNameIgnoreCase(
+                foodName
+        )) {
+
+            throw new RuntimeException(
+                    "Food already exists"
+            );
+        }
+
         Category category =
 
                 categoryRepository
@@ -51,7 +65,7 @@ public class FoodServiceImpl
                 Food.builder()
 
                         .name(
-                                request.getName()
+                                foodName
                         )
 
                         .type(

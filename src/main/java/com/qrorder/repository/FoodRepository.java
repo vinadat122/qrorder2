@@ -20,4 +20,8 @@ public interface FoodRepository
     List<Food> findByAvailable(
             Boolean available
     );
+
+    boolean existsByNameIgnoreCase(
+            String name
+    );
 }

@@ -6,6 +6,7 @@ import com.qrorder.dto.table.response.TableResponse;
 
 import com.qrorder.entity.RestaurantTable;
 import com.qrorder.service.TableService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,8 @@ public class TableController {
 
     @PostMapping
     public String createTable(
+
+            @Valid
             @RequestBody CreateTableRequest request
     ) {
 
@@ -34,6 +37,7 @@ public class TableController {
 
             @PathVariable Long tableId,
 
+            @Valid
             @RequestBody
             ReserveTableRequest request
     ) {

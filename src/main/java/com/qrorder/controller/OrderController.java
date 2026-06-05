@@ -8,6 +8,7 @@ import com.qrorder.entity.enums.OrderItemStatus;
 
 import com.qrorder.service.OrderService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,7 @@ public class OrderController {
     @PostMapping
     public String createOrder(
 
+            @Valid
             @RequestBody
             CreateOrderRequest request
     ) {

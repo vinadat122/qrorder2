@@ -1,5 +1,6 @@
 package com.qrorder.service.impl;
 
+import com.qrorder.dto.payment.PaymentHistoryResponse;
 import com.qrorder.dto.payment.PaymentItemResponse;
 import com.qrorder.dto.payment.PaymentResponse;
 import com.qrorder.entity.*;
@@ -395,6 +396,117 @@ public class PaymentServiceImpl
         }
 
         return totalAmount;
+    }
+
+    @Override
+    public List<PaymentHistoryResponse>
+    getPaymentHistory() {
+
+        return paymentRepository
+
+                .findAllByOrderByPaidAtDesc()
+
+                .stream()
+
+                .map(payment ->
+
+                        PaymentHistoryResponse
+                                .builder()
+
+                                .paymentId(
+                                        payment.getId()
+                                )
+
+                                .sessionId(
+                                        payment
+                                                .getSession()
+                                                .getId()
+                                )
+
+                                .tableId(
+                                        payment
+                                                .getSession()
+                                                .getTable()
+                                                .getId()
+                                )
+
+                                .tableNumber(
+                                        payment
+                                                .getSession()
+                                                .getTable()
+                                                .getTableNumber()
+                                )
+
+                                .amount(
+                                        payment.getAmount()
+                                )
+
+                                .paidAt(
+                                        payment.getPaidAt()
+                                )
+
+                                .build()
+                )
+
+                .toList();
+    }
+
+    @Override
+    public PaymentHistoryResponse
+    getPaymentDetail(
+
+            Long paymentId
+    ) {
+
+        Payment payment =
+
+                paymentRepository
+                        .findById(
+                                paymentId
+                        )
+                        .orElseThrow(() ->
+
+                                new RuntimeException(
+                                        "Payment not found"
+                                )
+                        );
+
+        return PaymentHistoryResponse
+                .builder()
+
+                .paymentId(
+                        payment.getId()
+                )
+
+                .sessionId(
+                        payment
+                                .getSession()
+                                .getId()
+                )
+
+                .tableId(
+                        payment
+                                .getSession()
+                                .getTable()
+                                .getId()
+                )
+
+                .tableNumber(
+                        payment
+                                .getSession()
+                                .getTable()
+                                .getTableNumber()
+                )
+
+                .amount(
+                        payment.getAmount()
+                )
+
+                .paidAt(
+                        payment.getPaidAt()
+                )
+
+                .build();
     }
 
 }
