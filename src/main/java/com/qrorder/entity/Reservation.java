@@ -21,15 +21,18 @@ public class Reservation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Long id;
 
+    @Column(nullable = false)
     private String customerName;
 
+    @Column(nullable = false)
     private String phone;
 
+    @Column(nullable = false)
     private Integer guestCount;
 
+    @Column(nullable = false)
     private LocalDateTime reservationTime;
 
     private String note;

@@ -17,9 +17,14 @@ public class Food {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(
+            nullable = false,
+            unique = true
+    )
     private String name;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private FoodType type;
 
     private Double price;
@@ -28,6 +33,9 @@ public class Food {
 
     private String image;
 
+    @Column(
+            nullable = false
+    )
     private Boolean available;
 
     @ManyToOne

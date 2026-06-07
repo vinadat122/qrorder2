@@ -36,5 +36,6 @@ public class RestaurantTable {
     @OneToMany(mappedBy = "table")
     private List<Reservation> reservations;
 
+    @Column(nullable = false)
     private Integer capacity;
 }
