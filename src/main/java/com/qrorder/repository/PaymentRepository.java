@@ -4,6 +4,7 @@ import com.qrorder.entity.Payment;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PaymentRepository
@@ -14,4 +15,9 @@ public interface PaymentRepository
     );
 
     List<Payment> findAllByOrderByPaidAtDesc();
+
+    List<Payment> findByPaidAtBetween(
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }

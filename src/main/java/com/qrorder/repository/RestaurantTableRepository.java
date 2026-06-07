@@ -16,4 +16,8 @@ public interface RestaurantTableRepository
 
     boolean existsByTableNumber(Integer tableNumber);
 
+    long countByStatus(
+            TableStatus status
+    );
+
 }
