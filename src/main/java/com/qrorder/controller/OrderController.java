@@ -53,25 +53,74 @@ public class OrderController {
                 );
     }
 
-    @PutMapping(
-            "/items/{itemId}/status"
-    )
-
-    public String updateOrderItemStatus(
+    @PutMapping("/items/{itemId}/preparing")
+    public String preparing(
 
             @PathVariable
-            Long itemId,
-
-            @RequestParam
-            OrderItemStatus status
+            Long itemId
     ) {
 
-        orderService.updateOrderItemStatus(
-
-                itemId,
-
-                status
+        orderService.preparing(
+                itemId
         );
-        return "Update success";
+
+        return "Preparing success";
     }
+
+    @PutMapping("/items/{itemId}/done")
+    public String done(
+
+            @PathVariable
+            Long itemId
+    ) {
+
+        orderService.done(
+                itemId
+        );
+
+        return "Done success";
+    }
+
+    @PutMapping("/items/{itemId}/served")
+    public String served(
+
+            @PathVariable
+            Long itemId
+    ) {
+
+        orderService.served(
+                itemId
+        );
+
+        return "Served success";
+    }
+
+    @PutMapping("/items/{itemId}/cancel")
+    public String cancel(
+
+            @PathVariable
+            Long itemId
+    ) {
+
+        orderService.cancel(
+                itemId
+        );
+
+        return "Cancel success";
+    }
+
+    @PutMapping("/items/{itemId}/wasted")
+    public String wasted(
+
+            @PathVariable
+            Long itemId
+    ) {
+
+        orderService.wasted(
+                itemId
+        );
+
+        return "Wasted success";
+    }
+
 }

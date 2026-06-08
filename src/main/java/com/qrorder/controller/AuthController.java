@@ -1,9 +1,10 @@
 package com.qrorder.controller;
 
-import com.qrorder.dto.auth.LoginRequest;
-import com.qrorder.dto.auth.LoginResponse;
-import com.qrorder.dto.auth.RegisterRequest;
+import com.qrorder.dto.auth.request.LoginRequest;
+import com.qrorder.dto.auth.response.LoginResponse;
+import com.qrorder.dto.auth.request.RegisterRequest;
 import com.qrorder.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,13 +16,28 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public LoginResponse login(
 
-        return authService.login(request);
+            @Valid
+            @RequestBody
+            LoginRequest request
+    ) {
+
+        return authService.login(
+                request
+        );
     }
-    @PostMapping("/register")
-    public LoginResponse register( @RequestBody RegisterRequest request ) {
 
-        return authService.register( request );
+    @PostMapping("/register")
+    public LoginResponse register(
+
+            @Valid
+            @RequestBody
+            RegisterRequest request
+    ) {
+
+        return authService.register(
+                request
+        );
     }
 }

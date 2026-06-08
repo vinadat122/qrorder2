@@ -246,13 +246,10 @@ public class OrderServiceImpl
         ).toList();
     }
 
+
     @Override
-    @Transactional
-    public void updateOrderItemStatus(
-
-            Long itemId,
-
-            OrderItemStatus newStatus
+    public void cancel(
+            Long itemId
     ) {
 
         OrderItem item =
@@ -265,68 +262,145 @@ public class OrderServiceImpl
                                 )
                         );
 
-        OrderItemStatus currentStatus =
-                item.getStatus();
-
-        boolean validTransition = false;
-
-        switch (currentStatus) {
-
-            case PENDING:
-
-                validTransition =
-
-                        newStatus
-                                == OrderItemStatus.PREPARING
-
-                                ||
-
-                                newStatus
-                                        == OrderItemStatus.CANCELLED;
-
-                break;
-
-            case PREPARING:
-
-                validTransition =
-
-                        newStatus
-                                == OrderItemStatus.DONE;
-
-                break;
-
-            case DONE:
-
-                validTransition =
-
-                        newStatus
-                                == OrderItemStatus.SERVED
-
-                                ||
-
-                                newStatus
-                                        == OrderItemStatus.WASTED;
-
-                break;
-
-            case SERVED:
-            case CANCELLED:
-            case WASTED:
-
-                validTransition = false;
-
-                break;
-        }
-
-        if (!validTransition) {
+        if(item.getStatus()
+                != OrderItemStatus.PENDING) {
 
             throw new RuntimeException(
-                    "Invalid status transition"
+                    "Only pending item can be cancelled"
             );
         }
 
         item.setStatus(
-                newStatus
+                OrderItemStatus.CANCELLED
+        );
+
+        orderItemRepository.save(
+                item
+        );
+    }
+
+
+    @Override
+    public void preparing(
+            Long itemId
+    ) {
+
+        OrderItem item =
+
+                orderItemRepository
+                        .findById(itemId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "Order item not found"
+                                )
+                        );
+
+        if(item.getStatus()
+                != OrderItemStatus.PENDING) {
+
+            throw new RuntimeException(
+                    "Only pending item can be prepared"
+            );
+        }
+
+        item.setStatus(
+                OrderItemStatus.PREPARING
+        );
+
+        orderItemRepository.save(
+                item
+        );
+    }
+
+    @Override
+    public void done(
+            Long itemId
+    ) {
+
+        OrderItem item =
+
+                orderItemRepository
+                        .findById(itemId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "Order item not found"
+                                )
+                        );
+
+        if(item.getStatus()
+                != OrderItemStatus.PREPARING) {
+
+            throw new RuntimeException(
+                    "Only preparing item can be done"
+            );
+        }
+
+        item.setStatus(
+                OrderItemStatus.DONE
+        );
+
+        orderItemRepository.save(
+                item
+        );
+    }
+
+    @Override
+    public void served(
+            Long itemId
+    ) {
+
+        OrderItem item =
+
+                orderItemRepository
+                        .findById(itemId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "Order item not found"
+                                )
+                        );
+
+        if(item.getStatus()
+                != OrderItemStatus.DONE) {
+
+            throw new RuntimeException(
+                    "Only done item can be served"
+            );
+        }
+
+        item.setStatus(
+                OrderItemStatus.SERVED
+        );
+
+        orderItemRepository.save(
+                item
+        );
+    }
+
+    @Override
+    public void wasted(
+            Long itemId
+    ) {
+
+        OrderItem item =
+
+                orderItemRepository
+                        .findById(itemId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "Order item not found"
+                                )
+                        );
+
+        if(item.getStatus()
+                != OrderItemStatus.DONE) {
+
+            throw new RuntimeException(
+                    "Only done item can be wasted"
+            );
+        }
+
+        item.setStatus(
+                OrderItemStatus.WASTED
         );
 
         orderItemRepository.save(

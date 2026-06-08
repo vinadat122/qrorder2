@@ -1,17 +1,17 @@
 package com.qrorder.security;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.*;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.*;
-import org.springframework.security.web.authentication.
-        UsernamePasswordAuthenticationFilter;
 
-import org.springframework.web.cors.*;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor
@@ -25,62 +25,58 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-                .cors(cors -> {})
+
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
+
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
+                .exceptionHandling(ex -> ex
+
+                        .authenticationEntryPoint(
+
+                                (request,
+                                 response,
+                                 authException) ->
+
+                                        response.sendError(
+                                                HttpServletResponse.SC_UNAUTHORIZED,
+                                                "Unauthorized"
+                                        )
+                        )
+
+                        .accessDeniedHandler(
+
+                                (request,
+                                 response,
+                                 accessDeniedException) ->
+
+                                        response.sendError(
+                                                HttpServletResponse.SC_FORBIDDEN,
+                                                "Forbidden"
+                                        )
+                        )
+                )
+
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers(
-                                "/**")
-                        .permitAll()
+                        // TẠM THỜI MỞ TOÀN BỘ
 
                         .anyRequest()
-                        .authenticated()
+                        .permitAll()
                 )
 
                 .addFilterBefore(
+
                         jwtFilter,
+
                         UsernamePasswordAuthenticationFilter.class
                 );
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource
-    corsConfigurationSource() {
-
-        CorsConfiguration configuration =
-                new CorsConfiguration();
-
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:5173","http://192.168.102.8:5173")
-        );
-
-        configuration.setAllowedMethods(
-                List.of("*")
-        );
-
-        configuration.setAllowedHeaders(
-                List.of("*")
-        );
-
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
-        source.registerCorsConfiguration(
-                "/**",
-                configuration
-        );
-
-        return source;
     }
 }

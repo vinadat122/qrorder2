@@ -1,15 +1,17 @@
-package com.qrorder.dto.auth;
+package com.qrorder.dto.auth.response;
 
-import com.qrorder.entity.User;
+import com.qrorder.dto.auth.response.UserResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
+
 public class LoginResponse {
 
     private String accessToken;
-    private User user;
+
+    private UserResponse user;
 }

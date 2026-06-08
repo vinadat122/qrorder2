@@ -32,4 +32,11 @@ public interface TableSessionRepository
             SessionStatus status
     );
 
+
+    Optional<TableSession>
+    findBySessionToken(
+            String sessionToken
+    );
+
+
 }

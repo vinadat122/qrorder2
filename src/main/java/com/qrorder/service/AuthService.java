@@ -1,11 +1,13 @@
 package com.qrorder.service;
 
-import com.qrorder.dto.auth.LoginRequest;
-import com.qrorder.dto.auth.LoginResponse;
-import com.qrorder.dto.auth.RegisterRequest;
+import com.qrorder.dto.auth.request.LoginRequest;
+import com.qrorder.dto.auth.request.RegisterRequest;
+import com.qrorder.dto.auth.response.LoginResponse;
 
 public interface AuthService {
 
     LoginResponse login(LoginRequest request);
-    LoginResponse register(RegisterRequest request);
+
+    LoginResponse register( RegisterRequest request );
+
 }

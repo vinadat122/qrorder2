@@ -1,14 +1,15 @@
 
 package com.qrorder.service.impl;
 
-import com.qrorder.dto.auth.LoginRequest;
-import com.qrorder.dto.auth.LoginResponse;
-import com.qrorder.dto.auth.RegisterRequest;
+import com.qrorder.dto.auth.request.LoginRequest;
+import com.qrorder.dto.auth.request.RegisterRequest;
+import com.qrorder.dto.auth.response.LoginResponse;
+import com.qrorder.dto.auth.response.UserResponse;
 import com.qrorder.entity.User;
+import com.qrorder.entity.enums.Role;
 import com.qrorder.repository.UserRepository;
 import com.qrorder.service.AuthService;
 import com.qrorder.util.JwtUtil;
-import com.qrorder.entity.enums.Role;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,16 +35,27 @@ public class AuthServiceImpl
     ) {
 
         User user =
-                userRepository.findByUsername(
-                        request.getUsername()
-                ).orElseThrow(() ->
 
-                        new RuntimeException(
-                                "User not found"
+                userRepository
+                        .findByUsername(
+                                request.getUsername()
                         )
-                );
+                        .orElseThrow(() ->
+
+                                new RuntimeException(
+                                        "User not found"
+                                )
+                        );
+
+        if(!user.getEnabled()) {
+
+            throw new RuntimeException(
+                    "User is disabled"
+            );
+        }
 
         boolean checkPassword =
+
                 passwordEncoder.matches(
 
                         request.getPassword(),
@@ -59,15 +71,39 @@ public class AuthServiceImpl
         }
 
         String token =
+
                 jwtUtil.generateToken(
-                        user.getUsername()
+
+                        user.getUsername(),
+
+                        user.getRole()
+                                .name()
                 );
 
         return LoginResponse.builder()
 
-                .accessToken(token)
+                .accessToken(
+                        token
+                )
 
-                .user(user)
+                .user(
+
+                        UserResponse.builder()
+
+                                .id(
+                                        user.getId()
+                                )
+
+                                .username(
+                                        user.getUsername()
+                                )
+
+                                .role(
+                                        user.getRole()
+                                )
+
+                                .build()
+                )
 
                 .build();
     }
@@ -77,54 +113,78 @@ public class AuthServiceImpl
             RegisterRequest request
     ) {
 
-        User existingUser =
-                userRepository.findByUsername(
+        if(userRepository
+                .existsByUsernameIgnoreCase(
                         request.getUsername()
-                ).orElse(null);
-
-        if(existingUser != null) {
+                )) {
 
             throw new RuntimeException(
                     "Username already exists"
             );
         }
 
-        User user = User.builder()
+        User user =
 
-                .username(
-                        request.getUsername()
-                )
+                User.builder()
 
-                .password(
-                        passwordEncoder.encode(
-                                request.getPassword()
+                        .username(
+                                request.getUsername()
                         )
-                )
 
-                .role(
-                        Role.USER
-                )
+                        .password(
+                                passwordEncoder.encode(
+                                        request.getPassword()
+                                )
+                        )
 
-                .build();
+                        .role(
+                                Role.USER
+                        )
 
-        // save user
+                        .enabled(
+                                true
+                        )
 
-        userRepository.save(user);
+                        .build();
 
-        // generate token
+        userRepository.save(
+                user
+        );
 
         String token =
-                jwtUtil.generateToken(
-                        user.getUsername()
-                );
 
-        // return response
+                jwtUtil.generateToken(
+
+                        user.getUsername(),
+
+                        user.getRole()
+                                .name()
+                );
 
         return LoginResponse.builder()
 
-                .accessToken(token)
+                .accessToken(
+                        token
+                )
 
-                .user(user)
+                .user(
+
+                        UserResponse.builder()
+
+                                .id(
+                                        user.getId()
+                                )
+
+                                .username(
+                                        user.getUsername()
+                                )
+
+                                .role(
+                                        user.getRole()
+                                )
+
+                                .build()
+                )
 
                 .build();
     }

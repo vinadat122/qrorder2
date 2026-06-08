@@ -34,10 +34,9 @@ public class TableSession {
     @Enumerated(EnumType.STRING)
     private SessionStatus status;
 
-    @Column(unique = true)
+    @Column(nullable = false)
     private LocalDateTime startTime;
 
-    @Column(unique = true)
     private LocalDateTime endTime;
 
     @OneToMany( mappedBy = "session",

@@ -18,10 +18,14 @@ public interface OrderService {
             Long sessionId
     );
 
-    void updateOrderItemStatus(
+    void preparing(Long itemId);
 
-            Long itemId,
+    void done(Long itemId);
 
-            OrderItemStatus status
-    );
+    void served(Long itemId);
+
+    void cancel(Long itemId);
+
+    void wasted(Long itemId);
+
 }

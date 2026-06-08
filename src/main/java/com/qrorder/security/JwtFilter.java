@@ -17,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
@@ -26,55 +27,76 @@ public class JwtFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
 
     @Override
+    protected boolean shouldNotFilter(
+            HttpServletRequest request
+    ) {
+
+        String path = request.getServletPath();
+
+        return path.startsWith("/auth")
+                || path.startsWith("/customer")
+                || path.matches("/tables/.*/reserve");
+    }
+
+    @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        String authHeader =
+                request.getHeader("Authorization");
 
         String token = null;
+
         String username = null;
 
-        if(authHeader != null &&
-                authHeader.startsWith("Bearer ")) {
+        if (authHeader != null
+                && authHeader.startsWith("Bearer ")) {
 
             token = authHeader.substring(7);
 
             try {
 
-                username = jwtUtil.extractUsername(token);
+                username =
+                        jwtUtil.extractUsername(token);
 
             } catch (Exception e) {
 
-                response.setStatus(
-                        HttpServletResponse.SC_UNAUTHORIZED
+                response.sendError(
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        "Invalid token"
                 );
 
                 return;
             }
         }
 
-        if(username != null &&
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication() == null) {
+        if (username != null
+                && SecurityContextHolder
+                .getContext()
+                .getAuthentication() == null) {
 
             UserDetails userDetails =
                     userDetailsService
                             .loadUserByUsername(username);
 
-            if(jwtUtil.validateToken(token)) {
+            if (jwtUtil.validateToken(token)) {
 
                 UsernamePasswordAuthenticationToken authToken =
+
                         new UsernamePasswordAuthenticationToken(
+
                                 userDetails,
+
                                 null,
+
                                 userDetails.getAuthorities()
                         );
 
                 authToken.setDetails(
+
                         new WebAuthenticationDetailsSource()
                                 .buildDetails(request)
                 );
@@ -85,6 +107,10 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(
+                request,
+                response
+        );
     }
 }
+
