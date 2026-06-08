@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UserResponse {
+public class AuthUserResponse {
 
     private Long id;
 

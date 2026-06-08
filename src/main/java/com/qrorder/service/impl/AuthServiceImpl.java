@@ -4,7 +4,7 @@ package com.qrorder.service.impl;
 import com.qrorder.dto.auth.request.LoginRequest;
 import com.qrorder.dto.auth.request.RegisterRequest;
 import com.qrorder.dto.auth.response.LoginResponse;
-import com.qrorder.dto.auth.response.UserResponse;
+import com.qrorder.dto.auth.response.AuthUserResponse;
 import com.qrorder.entity.User;
 import com.qrorder.entity.enums.Role;
 import com.qrorder.repository.UserRepository;
@@ -88,7 +88,7 @@ public class AuthServiceImpl
 
                 .user(
 
-                        UserResponse.builder()
+                        AuthUserResponse.builder()
 
                                 .id(
                                         user.getId()
@@ -169,7 +169,7 @@ public class AuthServiceImpl
 
                 .user(
 
-                        UserResponse.builder()
+                        AuthUserResponse.builder()
 
                                 .id(
                                         user.getId()

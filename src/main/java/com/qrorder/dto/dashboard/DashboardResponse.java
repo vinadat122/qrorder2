@@ -20,4 +20,14 @@ public class DashboardResponse {
     private Long wastedItems;
 
     private Long totalPayments;
+
+    // NEW
+
+    private Long totalUsers;
+
+    private Long totalFeedbacks;
+
+    private Double averageRating;
+
+    private Long totalCompletedSessions;
 }

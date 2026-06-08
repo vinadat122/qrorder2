@@ -1,12 +1,12 @@
 package com.qrorder.service.impl;
 
 import com.qrorder.dto.dashboard.DashboardResponse;
+import com.qrorder.entity.Feedback;
 import com.qrorder.entity.Payment;
 import com.qrorder.entity.enums.OrderItemStatus;
+import com.qrorder.entity.enums.SessionStatus;
 import com.qrorder.entity.enums.TableStatus;
-import com.qrorder.repository.OrderItemRepository;
-import com.qrorder.repository.PaymentRepository;
-import com.qrorder.repository.RestaurantTableRepository;
+import com.qrorder.repository.*;
 import com.qrorder.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +27,13 @@ public class DashboardServiceImpl
 
     private final OrderItemRepository
             orderItemRepository;
+
+    private final UserRepository userRepository;
+
+    private final FeedbackRepository feedbackRepository;
+
+    private final TableSessionRepository
+            tableSessionRepository;
 
     @Override
     public DashboardResponse getDashboard() {
@@ -117,6 +124,34 @@ public class DashboardServiceImpl
                 paymentRepository
                         .count();
 
+        long totalUsers =
+
+                userRepository
+                        .countByEnabledTrue();
+
+        long totalFeedbacks =
+
+                feedbackRepository
+                        .count();
+
+        double averageRating =
+
+                feedbackRepository
+                        .findAll()
+                        .stream()
+                        .mapToInt(
+                                Feedback::getRating
+                        )
+                        .average()
+                        .orElse(0);
+
+        long totalCompletedSessions =
+
+                tableSessionRepository
+                        .countByStatus(
+                                SessionStatus.CLOSED
+                        );
+
         return DashboardResponse
                 .builder()
 
@@ -146,6 +181,22 @@ public class DashboardServiceImpl
 
                 .totalPayments(
                         totalPayments
+                )
+
+                .totalUsers(
+                        totalUsers
+                )
+
+                .totalFeedbacks(
+                        totalFeedbacks
+                )
+
+                .averageRating(
+                        averageRating
+                )
+
+                .totalCompletedSessions(
+                        totalCompletedSessions
                 )
 
                 .build();

@@ -45,7 +45,7 @@ public class ReservationScheduler {
 
                     reservation
                             .getReservationTime()
-                            .plusSeconds(10);
+                            .plusMinutes(10);
 
             if (
 

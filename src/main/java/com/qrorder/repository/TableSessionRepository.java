@@ -38,5 +38,8 @@ public interface TableSessionRepository
             String sessionToken
     );
 
+    long countByStatus(
+            SessionStatus status
+    );
 
 }
