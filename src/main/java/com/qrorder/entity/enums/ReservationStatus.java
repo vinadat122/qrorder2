@@ -1,9 +1,16 @@
 package com.qrorder.entity.enums;
 
 public enum ReservationStatus {
-    PENDING,
+
+    WAITLIST,
+
     CONFIRMED,
+
+    CHECKED_IN,
+
+    COMPLETED,
+
     CANCELLED,
-    ARRIVED,
-    COMPLETED
+
+    EXPIRED
 }

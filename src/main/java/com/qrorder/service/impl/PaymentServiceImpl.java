@@ -14,6 +14,7 @@ import com.qrorder.repository.*;
 
 import com.qrorder.service.PaymentService;
 
+import com.qrorder.service.ReservationService;
 import jakarta.transaction.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class PaymentServiceImpl
     private final ReservationRepository reservationRepository;
 
     private final PaymentRepository paymentRepository;
+    private final ReservationService reservationService;
 
     @Override
     @Transactional
@@ -330,27 +332,19 @@ public class PaymentServiceImpl
                 TableStatus.EMPTY
         );
 
-        List<Reservation> reservations =
+        Reservation reservation =
+                session.getReservation();
 
-                reservationRepository
-                        .findByTableId(
-                                table.getId()
-                        );
+        if(reservation != null) {
 
-        reservations.forEach(reservation -> {
+            reservation.setStatus(
+                    ReservationStatus.COMPLETED
+            );
 
-            if (reservation.getStatus()
-                    == ReservationStatus.ARRIVED) {
-
-                reservation.setStatus(
-                        ReservationStatus.COMPLETED
-                );
-            }
-        });
-
-        reservationRepository.saveAll(
-                reservations
-        );
+            reservationRepository.save(
+                    reservation
+            );
+        }
 
         sessionRepository.save(
                 session
@@ -359,6 +353,9 @@ public class PaymentServiceImpl
         tableRepository.save(
                 table
         );
+
+        reservationService
+                .promoteWaitlist();
     }
 
     private double calculateTotalAmount(

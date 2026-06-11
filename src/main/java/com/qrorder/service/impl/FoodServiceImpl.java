@@ -142,6 +142,10 @@ public class FoodServiceImpl
                                 food.getAvailable()
                         )
 
+                        .categoryId(
+                                food.getCategory().getId()
+                        )
+
                         .categoryName(
                                 food.getCategory()
                                         .getName()

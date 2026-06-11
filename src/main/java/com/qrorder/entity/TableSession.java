@@ -68,4 +68,8 @@ public class TableSession {
     @Column
     private Double finalAmount;
 
+    @ManyToOne
+    @JoinColumn(name = "reservation_id")
+    private Reservation reservation;
+
 }

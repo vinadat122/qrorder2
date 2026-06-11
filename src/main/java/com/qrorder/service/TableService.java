@@ -12,13 +12,6 @@ public interface TableService {
 
     void createTable(CreateTableRequest request);
 
-    void reserveTable(
-            Long tableId,
-            ReserveTableRequest request
-    );
-
-    Long checkIn(Long tableId);
-
     List<TableResponse> getTables();
 
     void resetTable(Long tableId);

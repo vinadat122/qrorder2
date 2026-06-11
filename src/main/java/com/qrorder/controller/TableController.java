@@ -32,44 +32,12 @@ public class TableController {
         return "Create table success";
     }
 
-    @PostMapping("/{tableId}/reserve")
-    public String reserveTable(
-
-            @PathVariable Long tableId,
-
-            @Valid
-            @RequestBody
-            ReserveTableRequest request
-    ) {
-
-        tableService.reserveTable(
-                tableId,
-                request
-        );
-
-        return "Reserve table success";
-    }
-
     @GetMapping
     public List<TableResponse> getTables() {
 
         return tableService.getTables();
     }
 
-    @PostMapping("/{tableId}/checkin")
-    public Map<String, Long> checkIn(
-
-                                     @PathVariable Long tableId
-    ) {
-
-        Long sessionId =
-                tableService.checkIn(tableId);
-
-        return Map.of(
-                "sessionId",
-                sessionId
-        );
-    }
 
     @PutMapping ("/{tableId}/reset")
     public String resetTable(

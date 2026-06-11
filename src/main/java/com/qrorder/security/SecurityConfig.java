@@ -14,6 +14,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -21,216 +25,49 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
     @Bean
+    public CorsConfigurationSource
+    corsConfigurationSource() {
+
+        CorsConfiguration config =
+                new CorsConfiguration();
+
+        config.setAllowCredentials(
+                true
+        );
+
+        config.addAllowedOrigin(
+                "http://localhost:5173"
+        );
+
+        config.addAllowedHeader(
+                "*"
+        );
+
+        config.addAllowedMethod(
+                "*"
+        );
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration(
+                "/**",
+                config
+        );
+
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http
     ) throws Exception {
 
         http
-
                 .csrf(csrf -> csrf.disable())
-
-                .sessionManagement(session ->
-
-                        session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
-                )
-
-                .exceptionHandling(ex -> ex
-
-                        .authenticationEntryPoint(
-
-                                (request,
-                                 response,
-                                 authException) ->
-
-                                        response.sendError(
-                                                HttpServletResponse.SC_UNAUTHORIZED,
-                                                "Unauthorized"
-                                        )
-                        )
-
-                        .accessDeniedHandler(
-
-                                (request,
-                                 response,
-                                 accessDeniedException) ->
-
-                                        response.sendError(
-                                                HttpServletResponse.SC_FORBIDDEN,
-                                                "Forbidden"
-                                        )
-                        )
-                )
-
+                .cors(cors -> {})
                 .authorizeHttpRequests(auth -> auth
-
-                        // PUBLIC
-
-                        .requestMatchers(
-                                "/auth/login",
-                                "/auth/register"
-                        )
-                        .permitAll()
-
-                        // CUSTOMER
-
-                        .requestMatchers(
-                                "/customer/**"
-                        )
-                        .permitAll()
-
-                        // RESERVATION
-
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/tables/*/reserve"
-                        )
-                        .permitAll()
-
-                        // ADMIN
-
-                        .requestMatchers(
-                                "/dashboard/**"
-                        )
-                        .hasRole("ADMIN")
-
-                        .requestMatchers(
-                                "/users/**"
-                        )
-                        .hasRole("ADMIN")
-
-                        // TABLE MANAGEMENT
-
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/tables"
-                        )
-                        .hasRole("ADMIN")
-
-                        .requestMatchers(
-                                HttpMethod.PUT,
-                                "/tables/*/reset"
-                        )
-                        .hasRole("ADMIN")
-
-                        // CATEGORY
-
-                        .requestMatchers(
-                                "/categories/**"
-                        )
-                        .hasRole("ADMIN")
-
-                        // FOOD
-
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/foods"
-                        )
-                        .hasRole("ADMIN")
-
-                        .requestMatchers(
-                                HttpMethod.PUT,
-                                "/foods/**"
-                        )
-                        .hasRole("ADMIN")
-
-                        .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/foods/**"
-                        )
-                        .hasRole("ADMIN")
-
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/foods/**"
-                        )
-                        .permitAll()
-
-                        // WAITER
-
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/tables"
-                        )
-                        .hasAnyRole(
-                                "WAITER",
-                                "ADMIN"
-                        )
-
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/tables/*/checkin"
-                        )
-                        .hasAnyRole(
-                                "WAITER",
-                                "ADMIN"
-                        )
-
-                        .requestMatchers(
-                                "/orders/items/*/served",
-                                "/orders/items/*/cancel",
-                                "/orders/items/*/wasted"
-                        )
-                        .hasAnyRole(
-                                "WAITER",
-                                "ADMIN"
-                        )
-
-                        // KITCHEN
-
-                        .requestMatchers(
-                                "/orders/items/*/preparing",
-                                "/orders/items/*/done"
-                        )
-                        .hasAnyRole(
-                                "KITCHEN",
-                                "ADMIN"
-                        )
-
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/orders/**"
-                        )
-                        .hasAnyRole(
-                                "KITCHEN",
-                                "WAITER",
-                                "ADMIN"
-                        )
-
-                        // CASHIER
-
-                        .requestMatchers(
-                                "/payments/**"
-                        )
-                        .hasAnyRole(
-                                "CASHIER",
-                                "ADMIN"
-                        )
-
-                        // FEEDBACK
-
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/feedbacks"
-                        )
-                        .permitAll()
-
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/feedbacks"
-                        )
-                        .hasRole("ADMIN")
-
-                        .anyRequest()
-                        .authenticated()
-                )
-
-                .addFilterBefore(
-
-                        jwtFilter,
-
-                        UsernamePasswordAuthenticationFilter.class
+                        .anyRequest().permitAll()
                 );
 
         return http.build();
